@@ -19,8 +19,6 @@ colors = {
 today = str(datetime.datetime.now())[:10]
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
-################################################## App dash build
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 ################################################## Main CALL
 df, df_month, cuenta, fechas_month = run()
@@ -37,7 +35,9 @@ def generate_monthtable( max_rows, dataframe):
     ]
 
 ################################################## OrganizeData CALL
-saldo_actual, saldo_previo,df_month, df, df_payments, df_deposits,fig_deposits,fig_month,fig_payments = organizer(df,df_month,fechas_month,colors)
+saldo_actual, saldo_previo,df_month, df, df_payments, df_deposits,fig_deposits,fig_month = organizer(df,df_month,fechas_month,colors) #,fig_payments
+################################################## App dash build
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 ################################################## App layout ##################################################
 
@@ -75,21 +75,32 @@ app.layout = html.Div(
                             'margin-left': 30
                             }
                         ),
-                    html.Div(children='''
-                    Opciones de visualización
-                    ''', style={
-                            'color': colors['h4'],
-                            'margin-left': 40
-                            }
-                        ),
+                    ################# Menu
+                    # html.Div(children='Opciones de visualización', 
+                    #         style={
+                    #                 'color': colors['h4'],
+                    #                 'margin-left': 40
+                    #                 }
+                    #         ),
                     html.Div(
-                        dcc.Dropdown(id = 'table_size',options = [{'label':'Ver todos los movimientos', 'value':2**100},{'label':'Ver últimos 10 movimientos', 'value':10},{'label':'Ver últimos 5 movimientos', 'value': 5}], value = 5),
+                        dcc.Dropdown(id = 'table_size',options = [ {'label':'Ver todos', 
+                                                                    'value':2**100},
+                                                                    {'label':'Ver últimos 10', 
+                                                                    'value':10},
+                                                                    {'label':'Ver últimos 5 ',
+                                                                     'value': 5}], 
+                                                        value = 5, 
+                                                        searchable = False,
+                                                        clearable = False
+                                    ),
+                    
                         style = {
                             'margin': 40,
-                            'margin-top':10
+                            'margin-top':10,
+                            'width': 150
                             }
                          ),
-
+                    ################# Table
                     html.Table(id = 'First_table',style={'textAlign': 'center',
                                                         #'color': colors['h4'],
                                                         'margin': 80,
@@ -128,10 +139,30 @@ app.layout = html.Div(
                              'margin-left': 30
                             }
                         ), 
+                    ################# Menu
+                    html.Div(
+                        dcc.Dropdown(id = 'graphic_p_range',options = [ {'label':'Ver todos', 
+                                                                    'value':2**100},
+                                                                    {'label':'Ver últimos 3 meses',
+                                                                     'value': 3},
+                                                                     {'label':'Ver último mes', 
+                                                                    'value':1}], 
+                                                        value = 3, 
+                                                        searchable = False,
+                                                        clearable = False
+                                    ),
+                    
+                        style = {
+                            'margin': 40,
+                            'margin-top':10,
+                            'margin-bottom':0,
+                            'width': 150
+                            }
+                         ),
 
                     dcc.Graph(
-                        id='df_Payments',
-                        figure=fig_payments
+                        id='df_Payments'
+                        #figure=fig_payments
                     ),
                     ############################# df deposits
                     html.H4(children='''
@@ -142,6 +173,26 @@ app.layout = html.Div(
                             'margin-left': 30
                             }
                         ),
+                    ################# Menu
+                    html.Div(
+                        dcc.Dropdown(id = 'graphic_d_range',options = [ {'label':'Ver todos', 
+                                                                    'value':2**100},
+                                                                    {'label':'Ver últimos 3',
+                                                                     'value': 3},
+                                                                     {'label':'Ver mes actual', 
+                                                                    'value':1}], 
+                                                        value = 5, 
+                                                        searchable = False,
+                                                        clearable = False
+                                    ),
+                    
+                        style = {
+                            'margin': 40,
+                            'margin-top':10,
+                            'margin-bottom':0,
+                            'width': 150
+                            }
+                         ),
 
                     dcc.Graph(
                         id='df_deposits',
@@ -184,6 +235,25 @@ def generate_table( max_rows, dataframe = df):
         ], style = {'color':'#414242' })
 
     ]
+@app.callback(Output('df_Payments','figure'),[Input('graphic_p_range', 'value')] )
+def generate_payments_graph( max_months ):
+    df_payments = df[df['Cargo']>0]
+    df_payments['Fecha'] = df[df['Cargo']>0].index
+
+    max_months = df_month.shape[0] - min(df_month.shape[0] , max_months) 
+
+    if max_months !=0 and max_months != (df_month.shape[0] - 1): # Si no es igual a eso entonces no hace filtro porque es todo el dataframe
+        df_payments = df_payments[df_payments['Fecha'] > df_month.index[max_months ]]
+    
+    elif max_months == (df_month.shape[0] - 1): # Para el mes actual
+         df_payments = df_payments[df_payments['Fecha'] > df_month.index[max_months - 1]]
+    
+    fig_payments = px.bar(df_payments, x = 'Fecha', y="Cargo", color="Descripcion", barmode="relative", title = 'Cargos')
+    return fig_payments.update_layout(
+        #plot_bgcolor=colors['background'],
+        paper_bgcolor=colors['background'],
+        font_color=colors['text']
+    )
 
 ################################################## Entry
 if __name__ == '__main__':

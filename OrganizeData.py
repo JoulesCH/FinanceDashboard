@@ -40,12 +40,14 @@ def organizer(df,df_month,fechas_month,colors):
     ################################################## df_payments
     df_payments = df[df['Cargo']>0]
     df_payments['Fecha'] = df[df['Cargo']>0].index
-    fig_payments = px.bar(df_payments,x = 'Fecha', y="Cargo", color="Descripcion", barmode="relative", title = 'Cargos')
-    fig_payments.update_layout(
-        #plot_bgcolor=colors['background'],
-        paper_bgcolor=colors['background'],
-        font_color=colors['text']
-    )
+    #print(df_payments[df_payments['Fecha'] > df_month.index[1]])
+    #print(df_month.index)
+    # fig_payments = px.bar(df_payments,x = 'Fecha', y="Cargo", color="Descripcion", barmode="relative", title = 'Cargos')
+    # fig_payments.update_layout(
+    #     #plot_bgcolor=colors['background'],
+    #     paper_bgcolor=colors['background'],
+    #     font_color=colors['text']
+    # )
     ################################################## df_deposits
     df_deposits = df[df['Abono']>0]
     df_deposits['Fecha'] = df[df['Abono']>0].index
@@ -55,4 +57,4 @@ def organizer(df,df_month,fechas_month,colors):
         paper_bgcolor=colors['background'],
         font_color=colors['text']
     )
-    return saldo_actual, saldo_previo,df_month, df, df_payments, df_deposits, fig_deposits,fig_month,fig_payments
+    return saldo_actual, saldo_previo,df_month, df, df_payments, df_deposits, fig_deposits,fig_month#,fig_payments
