@@ -124,11 +124,34 @@ app.layout = html.Div(
                                                                         'margin': 80,
                                                                         'margin-top': 10,
                                                                         'margin-left': 'auto',
-                                                                        'margin-right': 'auto'
+                                                                        'margin-right': 'auto',
+                                                                        'margin-bottom': 30
                                                                         }),
+                    ################# Menu
+                    html.Div(
+                        dcc.Dropdown(id = 'graphic_y',options = [ {'label':'Cargos', 
+                                                                        'value':'Cargos'},
+                                                                        {'label':'Abonos',
+                                                                        'value': 'Abonos'},
+                                                                        {'label':'Balance mensual', 
+                                                                        'value':'Balance mensual'},
+                                                                        {'label':'Saldo', 
+                                                                        'value':'Saldo'}], 
+                                                            value = 'Saldo', 
+                                                            searchable = False,
+                                                            clearable = False
+                                        ),
+                        style = {
+                                'margin': 40,
+                                'margin-top':10,
+                                'margin-bottom':0,
+                                'width': 150
+                                }
+                            ),
+                            
                     dcc.Graph(
-                        id='df_month',
-                        figure= fig_month
+                        id='df_month'#,
+                        #figure= fig_month
                     ),
                     ############################# df payments
                     html.H4(children='''
@@ -145,6 +168,8 @@ app.layout = html.Div(
                                                                     'value':2**100},
                                                                     {'label':'Ver últimos 3 meses',
                                                                      'value': 3},
+                                                                    {'label':'Ver últimos 2 meses',
+                                                                     'value': 2}, 
                                                                      {'label':'Ver último mes', 
                                                                     'value':1}], 
                                                         value = 3, 
@@ -156,7 +181,7 @@ app.layout = html.Div(
                             'margin': 40,
                             'margin-top':10,
                             'margin-bottom':0,
-                            'width': 150
+                            'width': 180
                             }
                          ),
 
@@ -177,11 +202,13 @@ app.layout = html.Div(
                     html.Div(
                         dcc.Dropdown(id = 'graphic_d_range',options = [ {'label':'Ver todos', 
                                                                     'value':2**100},
-                                                                    {'label':'Ver últimos 3',
+                                                                    {'label':'Ver últimos 3 meses',
                                                                      'value': 3},
-                                                                     {'label':'Ver mes actual', 
+                                                                    {'label':'Ver últimos 2 meses',
+                                                                     'value': 2}, 
+                                                                     {'label':'Ver último mes', 
                                                                     'value':1}], 
-                                                        value = 5, 
+                                                        value = 3, 
                                                         searchable = False,
                                                         clearable = False
                                     ),
@@ -190,13 +217,13 @@ app.layout = html.Div(
                             'margin': 40,
                             'margin-top':10,
                             'margin-bottom':0,
-                            'width': 150
+                            'width': 180
                             }
                          ),
 
                     dcc.Graph(
-                        id='df_deposits',
-                        figure=fig_deposits
+                        id='df_deposits'
+                        #figure=fig_deposits
                     ),
                     ############################# Footer
                     html.Footer(children= [
@@ -243,7 +270,7 @@ def generate_payments_graph( max_months ):
     max_months = df_month.shape[0] - min(df_month.shape[0] , max_months) 
 
     if max_months !=0 and max_months != (df_month.shape[0] - 1): # Si no es igual a eso entonces no hace filtro porque es todo el dataframe
-        df_payments = df_payments[df_payments['Fecha'] > df_month.index[max_months ]]
+        df_payments = df_payments[df_payments['Fecha'] > df_month.index[max_months - 1 ]]
     
     elif max_months == (df_month.shape[0] - 1): # Para el mes actual
          df_payments = df_payments[df_payments['Fecha'] > df_month.index[max_months - 1]]
@@ -255,6 +282,38 @@ def generate_payments_graph( max_months ):
         font_color=colors['text']
     )
 
+@app.callback(Output('df_deposits','figure'),[Input('graphic_d_range', 'value')] )
+def generate_deposits_graph( max_months ):
+    df_deposits = df[df['Abono']>0]
+    df_deposits['Fecha'] = df[df['Abono']>0].index
+
+    max_months = df_month.shape[0] - min(df_month.shape[0] , max_months) 
+
+    if max_months !=0 and max_months != (df_month.shape[0] - 1): # Si no es igual a eso entonces no hace filtro porque es todo el dataframe
+       
+        df_deposits = df_deposits[df_deposits['Fecha'] > df_month.index[max_months - 1]]
+    
+    elif max_months == (df_month.shape[0] - 1): # Para el mes actual
+         df_deposits = df_deposits[df_deposits['Fecha'] > df_month.index[max_months - 1]]
+    
+    fig_deposits = px.bar(df_deposits, x = 'Fecha', y="Abono", color="Descripcion", barmode="relative", title = 'Abonos')
+    return fig_deposits.update_layout(
+        #plot_bgcolor=colors['background'],
+        paper_bgcolor=colors['background'],
+        font_color=colors['text']
+    )
+
+@app.callback(Output('df_month','figure'),[Input('graphic_y', 'value')] )
+def generate_month_graph( y ):
+    fig_month = px.bar(df_month, x="Mes",y=y, barmode="group", title = 'Resumen mensual',
+                        color= 'Mes')
+
+    return fig_month.update_layout(
+        #plot_bgcolor=colors['background'],
+        paper_bgcolor=colors['background'],
+        font_color=colors['text'],
+        showlegend = False
+    )
 ################################################## Entry
 if __name__ == '__main__':
     app.run_server(debug=True)

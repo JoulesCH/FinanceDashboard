@@ -51,6 +51,7 @@ def organizer(df,df_month,fechas_month,colors):
     ################################################## df_deposits
     df_deposits = df[df['Abono']>0]
     df_deposits['Fecha'] = df[df['Abono']>0].index
+    
     fig_deposits = px.bar(df_deposits,x = 'Fecha',  y="Abono", color="Descripcion", barmode="group", title = 'Abonos')
     fig_deposits.update_layout(
         #plot_bgcolor=colors['background'],
