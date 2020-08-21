@@ -72,7 +72,7 @@ app.layout = html.Div(
                     ''', style={
                            # 'textAlign': 'center',
                             'color': colors['h4'],
-                            'margin-left': 30
+                            'margin-left': 40
                             }
                         ),
                     ################# Menu
@@ -83,6 +83,18 @@ app.layout = html.Div(
                     #                 }
                     #         ),
                     html.Div(
+                        dcc.Input(id = 'table_filter', type = 'text', placeholder = 'Filtrar por descripción'
+                                    ),
+                    
+                        style = {
+                            'margin': 40,
+                            'margin-top':10,
+                            'margin-bottom':10,
+                            'width': 500
+                            }
+                         ),
+
+                    html.Div( 
                         dcc.Dropdown(id = 'table_size',options = [ {'label':'Ver todos', 
                                                                     'value':2**100},
                                                                     {'label':'Ver últimos 10', 
@@ -96,10 +108,11 @@ app.layout = html.Div(
                     
                         style = {
                             'margin': 40,
-                            'margin-top':10,
+                            'margin-top': 0,
                             'width': 150
                             }
                          ),
+                    
                     ################# Table
                     html.Table(id = 'First_table',style={'textAlign': 'center',
                                                         #'color': colors['h4'],
@@ -115,7 +128,7 @@ app.layout = html.Div(
                     ''', style={
                             #'textAlign': 'center',
                             'color': colors['h4'],
-                             'margin-left': 30
+                             'margin-left': 40
                                 }
                         ),
                     html.Table(children = generate_monthtable(100, dataframe= df_month),style={
@@ -159,7 +172,7 @@ app.layout = html.Div(
                     ''', style={
                             #'textAlign': 'center',
                             'color': colors['h4'],
-                             'margin-left': 30
+                             'margin-left': 40
                             }
                         ), 
                     ################# Menu
@@ -195,7 +208,7 @@ app.layout = html.Div(
                     ''', style={
                             #'textAlign': 'center',
                             'color': colors['h4'],
-                            'margin-left': 30
+                            'margin-left': 40
                             }
                         ),
                     ################# Menu
@@ -250,18 +263,31 @@ app.layout = html.Div(
                     ) 
 ])
 ################################################## App Callbacks
-@app.callback(Output('First_table','children'),[Input('table_size', 'value')] )
-def generate_table( max_rows, dataframe = df):
-    return [ html.Thead(
-            html.Tr([html.Th(col) for col in dataframe.columns])
-        ),
+@app.callback(Output('First_table','children'),[Input('table_size', 'value'), Input('table_filter','value')] )
+def generate_table( max_rows, filter,dataframe = df):
+    if not filter:
+        return [ html.Thead(
+                html.Tr([html.Th(col) for col in dataframe.columns])
+            ),
 
-        html.Tbody([html.Tr([
-                html.Td(dataframe.iloc[i][col]) for col in dataframe.columns
-            ]) for i in range(min(len(dataframe), max_rows))
-        ], style = {'color':'#414242' })
+            html.Tbody([html.Tr([
+                    html.Td(dataframe.iloc[i][col]) for col in dataframe.columns
+                ]) for i in range(min(len(dataframe), max_rows))
+            ], style = {'color':'#414242' })
 
-    ]
+        ]
+    else:
+        dataframe = dataframe[dataframe['Descripcion'].apply(lambda x: filter.lower() in x.lower())]
+        return [ html.Thead(
+                html.Tr([html.Th(col) for col in dataframe.columns])
+            ),
+
+            html.Tbody([html.Tr([
+                    html.Td(dataframe.iloc[i][col]) for col in dataframe.columns
+                ]) for i in range(min(len(dataframe), max_rows))
+            ], style = {'color':'#414242' })
+
+        ]
 @app.callback(Output('df_Payments','figure'),[Input('graphic_p_range', 'value')] )
 def generate_payments_graph( max_months ):
     df_payments = df[df['Cargo']>0]
