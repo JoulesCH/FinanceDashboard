@@ -17,7 +17,7 @@ colors = {
     'h4':'#000000'#FFFFFF
 }
 today = str(datetime.datetime.now())[:10]
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+external_stylesheets = ['https://codepen.io/amyoshino/pen/jzXypZ.css']#chriddyp/pen/bWLwgP.css
 
 
 ################################################## Main CALL
@@ -119,53 +119,64 @@ app.layout = html.Div(
                                                         'margin': 80,
                                                         'margin-top': 10,
                                                         'margin-left': 'auto',
-                                                        'margin-right': 'auto'
+                                                        'margin-right': 'auto',
+                                                        'margin-bottom': 40
                                                                         }
                                 ),
                     ############################# df month table
-                    html.H4(children='''
-                    Resumen por mes
-                    ''', style={
-                            #'textAlign': 'center',
-                            'color': colors['h4'],
-                             'margin-left': 40
-                                }
-                        ),
-                    html.Table(children = generate_monthtable(100, dataframe= df_month),style={
-                                                                        'textAlign': 'center',
-                                                                        #'color': colors['h4'],
-                                                                        'margin': 80,
-                                                                        'margin-top': 10,
-                                                                        'margin-left': 'auto',
-                                                                        'margin-right': 'auto',
-                                                                        'margin-bottom': 30
-                                                                        }),
-                    ################# Menu
-                    html.Div(
-                        dcc.Dropdown(id = 'graphic_y',options = [ {'label':'Cargos', 
-                                                                        'value':'Cargos'},
-                                                                        {'label':'Abonos',
-                                                                        'value': 'Abonos'},
-                                                                        {'label':'Balance mensual', 
-                                                                        'value':'Balance mensual'},
-                                                                        {'label':'Saldo', 
-                                                                        'value':'Saldo'}], 
-                                                            value = 'Saldo', 
-                                                            searchable = False,
-                                                            clearable = False
-                                        ),
-                        style = {
-                                'margin': 40,
-                                'margin-top':10,
-                                'margin-bottom':0,
-                                'width': 150
-                                }
-                            ),
-                            
-                    dcc.Graph(
-                        id='df_month'#,
-                        #figure= fig_month
-                    ),
+                    html.Div([
+                        html.Div([
+                            html.H4(children='''
+                            Resumen por mes
+                            ''', style={
+                                    #'textAlign': 'center',
+                                    'color': colors['h4'],
+                                    'margin-left': 40
+                                        }
+                                ),
+                            html.Div(
+                                dcc.Dropdown(id = 'graphic_y',options = [ {'label':'Cargos', 
+                                                                                'value':'Cargos'},
+                                                                                {'label':'Abonos',
+                                                                                'value': 'Abonos'},
+                                                                                {'label':'Balance mensual', 
+                                                                                'value':'Balance mensual'},
+                                                                                {'label':'Saldo', 
+                                                                                'value':'Saldo'}], 
+                                                                    value = 'Saldo', 
+                                                                    searchable = False,
+                                                                    clearable = False
+                                                ),
+                                style = {
+                                        'margin': 40,
+                                        'margin-top':0,
+                                        'margin-bottom':0,
+                                        'width': 150
+                                        }
+                                    ),    
+
+                    
+                        
+                            html.Table(children = generate_monthtable(100, dataframe= df_month),style={
+                                                                                'textAlign': 'center',
+                                                                                #'color': colors['h4'],
+                                                                                'margin': 80,
+                                                                                'margin-top': 10,
+                                                                                'margin-left': 'auto',
+                                                                                'margin-right': 'auto',
+                                                                                'margin-bottom': 30
+                                                                                }),
+                        ], className = 'six columns'),
+                        ################# Menu
+                        html.Div([
+                            #
+                                    
+                            dcc.Graph(
+                                id='df_month'#,
+                                #figure= fig_month
+                            )
+                        ], className= 'six columns')
+                    ], className = 'row'),
                     ############################# df payments
                     html.H4(children='''
                     Gráfico de cargos
@@ -331,7 +342,7 @@ def generate_deposits_graph( max_months ):
 
 @app.callback(Output('df_month','figure'),[Input('graphic_y', 'value')] )
 def generate_month_graph( y ):
-    fig_month = px.bar(df_month, x="Mes",y=y, barmode="group", title = 'Resumen mensual',
+    fig_month = px.bar(df_month, x="Mes",y=y, barmode="group", #title = 'Resumen mensual',
                         color= 'Mes')
 
     return fig_month.update_layout(
